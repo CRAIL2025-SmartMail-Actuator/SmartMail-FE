@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  Home, 
-  Settings, 
-  Upload, 
-  Mail, 
+import {
+  Home,
+  Settings,
+  Upload,
+  Mail,
   FileText,
   LogOut,
   Bot,
@@ -46,7 +46,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={closeMobileMenu}
         />
@@ -62,8 +62,7 @@ export const Sidebar: React.FC = () => {
         <div className="flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-700">
           <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mr-2 sm:mr-3 flex-shrink-0" />
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold truncate">AI Responder</h1>
-            <p className="text-xs text-gray-400 truncate">Smart Email Assistant</p>
+            <h1 className="text-m sm:text-sm font-bold truncate">Smart Email Assistant</h1>
           </div>
         </div>
 

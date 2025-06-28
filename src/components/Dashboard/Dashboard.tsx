@@ -3,12 +3,12 @@ import { Layout } from '../Layout/Layout';
 import { useApp } from '../../contexts/AppContext';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorMessage } from '../common/ErrorMessage';
-import { 
-  Mail, 
-  FileText, 
-  Settings, 
-  TrendingUp, 
-  CheckCircle, 
+import {
+  Mail,
+  FileText,
+  Settings,
+  TrendingUp,
+  CheckCircle,
   Clock,
   AlertTriangle,
   Bot,
@@ -16,15 +16,15 @@ import {
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
-  const { 
-    emails, 
-    categories, 
-    documents, 
-    logs, 
-    loading, 
-    error, 
+  const {
+    emails,
+    categories,
+    documents,
+    logs,
+    loading,
+    error,
     loadPageData,
-    refreshData 
+    refreshData
   } = useApp();
 
   // Load dashboard data when component mounts
@@ -127,13 +127,12 @@ export const Dashboard: React.FC = () => {
                   <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{stat.name}</p>
                   <div className="flex items-center">
                     <p className="text-lg sm:text-2xl font-semibold text-gray-900">{stat.value}</p>
-                    <span className={`ml-1 sm:ml-2 text-xs font-medium px-1 sm:px-2 py-1 rounded-full ${
-                      stat.changeType === 'positive' 
-                        ? 'bg-green-100 text-green-800' 
+                    <span className={`ml-1 sm:ml-2 text-xs font-medium px-1 sm:px-2 py-1 rounded-full ${stat.changeType === 'positive'
+                        ? 'bg-green-100 text-green-800'
                         : stat.changeType === 'negative'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {stat.change}
                     </span>
                   </div>
@@ -157,23 +156,22 @@ export const Dashboard: React.FC = () => {
             </div>
             <div className="p-4 sm:p-6">
               {error.emails ? (
-                <ErrorMessage 
-                  message={error.emails} 
+                <ErrorMessage
+                  message={error.emails}
                   onRetry={() => loadPageData('dashboard')}
                 />
               ) : recentEmails.length > 0 ? (
                 <div className="space-y-3 sm:space-y-4">
                   {recentEmails.map((email) => (
                     <div key={email.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className={`p-2 rounded-full flex-shrink-0 ${
-                        email.status === 'sent' ? 'bg-green-100' :
-                        email.status === 'pending' ? 'bg-yellow-100' :
-                        email.status === 'failed' ? 'bg-red-100' : 'bg-gray-100'
-                      }`}>
+                      <div className={`p-2 rounded-full flex-shrink-0 ${email.status === 'sent' ? 'bg-green-100' :
+                          email.status === 'pending' ? 'bg-yellow-100' :
+                            email.status === 'failed' ? 'bg-red-100' : 'bg-gray-100'
+                        }`}>
                         {email.status === 'sent' ? <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" /> :
-                         email.status === 'pending' ? <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" /> :
-                         email.status === 'failed' ? <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" /> :
-                         <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />}
+                          email.status === 'pending' ? <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" /> :
+                            email.status === 'failed' ? <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" /> :
+                              <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
@@ -184,10 +182,10 @@ export const Dashboard: React.FC = () => {
                         </p>
                         <div className="flex items-center mt-1 space-x-2">
                           <span className="text-xs text-gray-400">
-                            {email.receivedAt.toLocaleTimeString()}
+                            {email.timestamp}
                           </span>
                           <span className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                            {Math.round(email.confidence * 100)}% confidence
+                            {email.category || 'Uncategorized'}
                           </span>
                         </div>
                       </div>
@@ -216,24 +214,23 @@ export const Dashboard: React.FC = () => {
             </div>
             <div className="p-4 sm:p-6">
               {error.logs ? (
-                <ErrorMessage 
-                  message={error.logs} 
+                <ErrorMessage
+                  message={error.logs}
                   onRetry={() => loadPageData('dashboard')}
                 />
               ) : recentLogs.length > 0 ? (
                 <div className="space-y-3 sm:space-y-4">
                   {recentLogs.map((log) => (
                     <div key={log.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className={`p-2 rounded-full flex-shrink-0 ${
-                        log.type === 'sent' ? 'bg-green-100' :
-                        log.type === 'failed' ? 'bg-red-100' :
-                        log.type === 'pending' ? 'bg-yellow-100' :
-                        'bg-blue-100'
-                      }`}>
+                      <div className={`p-2 rounded-full flex-shrink-0 ${log.type === 'sent' ? 'bg-green-100' :
+                          log.type === 'failed' ? 'bg-red-100' :
+                            log.type === 'pending' ? 'bg-yellow-100' :
+                              'bg-blue-100'
+                        }`}>
                         {log.type === 'sent' ? <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" /> :
-                         log.type === 'failed' ? <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" /> :
-                         log.type === 'pending' ? <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" /> :
-                         <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />}
+                          log.type === 'failed' ? <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" /> :
+                            log.type === 'pending' ? <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" /> :
+                              <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
@@ -268,7 +265,7 @@ export const Dashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <button 
+            <button
               onClick={() => loadPageData('configuration')}
               disabled={loading.categories}
               className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all group text-left disabled:opacity-50"
@@ -277,7 +274,7 @@ export const Dashboard: React.FC = () => {
               <p className="font-medium text-gray-900 text-sm sm:text-base">Manage Categories</p>
               <p className="text-xs sm:text-sm text-gray-500">Configure email categories</p>
             </button>
-            <button 
+            <button
               onClick={() => loadPageData('upload')}
               disabled={loading.documents}
               className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all group text-left disabled:opacity-50"
@@ -286,7 +283,7 @@ export const Dashboard: React.FC = () => {
               <p className="font-medium text-gray-900 text-sm sm:text-base">Upload Documents</p>
               <p className="text-xs sm:text-sm text-gray-500">Add company knowledge base</p>
             </button>
-            <button 
+            <button
               onClick={() => loadPageData('mailbox')}
               disabled={loading.emails}
               className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all group text-left sm:col-span-2 lg:col-span-1 disabled:opacity-50"

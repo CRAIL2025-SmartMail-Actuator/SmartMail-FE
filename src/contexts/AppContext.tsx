@@ -56,7 +56,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [categories, setCategories] = useState<Category[]>([]);
   const [documents, setDocuments] = useState<CompanyDocument[]>([]);
   const [emails, setEmails] = useState<Email[]>([]);
-  const [mailboxConfig, setMailboxConfig] = useState<MailboxConfig | null>(null);
+  const [mailboxConfig, setMailboxConfig] = useState<MailboxConfig | MailboxConfig[] | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const [loading, setLoading] = useState({
@@ -78,7 +78,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Page-specific data loading
   const loadPageData = async (page: 'dashboard' | 'configuration' | 'upload' | 'mailbox' | 'mailbox-config' | 'logs') => {
     console.log(`🔄 Loading data for page: ${page}`);
-    
+
     switch (page) {
       case 'dashboard':
         // Dashboard needs overview data from all APIs
@@ -89,12 +89,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           loadLogs()
         ]);
         break;
-        
+
       case 'configuration':
         // Configuration page only needs categories
         await loadCategories();
         break;
-        
+
       case 'upload':
         // Upload page needs categories (for assignment) and documents (to show existing)
         await Promise.all([
@@ -102,7 +102,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           loadDocuments()
         ]);
         break;
-        
+
       case 'mailbox':
         // Mailbox page needs mailbox config and emails
         await Promise.all([
@@ -110,7 +110,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           loadEmails()
         ]);
         break;
-        
+
       case 'mailbox-config':
         // Mailbox config page needs categories and mailbox config
         await Promise.all([
@@ -118,12 +118,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           loadMailboxConfig()
         ]);
         break;
-        
+
       case 'logs':
         // Logs page only needs logs
         await loadLogs();
         break;
-        
+
       default:
         console.warn(`Unknown page: ${page}`);
     }
@@ -132,10 +132,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Individual data loading functions
   const loadCategories = async () => {
     if (loading.categories) return; // Prevent duplicate calls
-    
+
     setLoading(prev => ({ ...prev, categories: true }));
     setError(prev => ({ ...prev, categories: null }));
-    
+
     try {
       const response = await apiService.getCategories();
       if (response.success && response.data) {
@@ -153,10 +153,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loadDocuments = async () => {
     if (loading.documents) return; // Prevent duplicate calls
-    
+
     setLoading(prev => ({ ...prev, documents: true }));
     setError(prev => ({ ...prev, documents: null }));
-    
+
     try {
       const response = await apiService.getDocuments();
       if (response.success && response.data) {
@@ -174,10 +174,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loadEmails = async () => {
     if (loading.emails) return; // Prevent duplicate calls
-    
+
     setLoading(prev => ({ ...prev, emails: true }));
     setError(prev => ({ ...prev, emails: null }));
-    
+
     try {
       const response = await apiService.getEmails();
       if (response.success && response.data) {
@@ -195,14 +195,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loadMailboxConfig = async () => {
     if (loading.mailboxConfig) return; // Prevent duplicate calls
-    
+
     setLoading(prev => ({ ...prev, mailboxConfig: true }));
     setError(prev => ({ ...prev, mailboxConfig: null }));
-    
+
     try {
       const response = await apiService.getMailboxConfig();
+      console.log(response, "response loadMailboxConfig")
       if (response.success && response.data) {
-        setMailboxConfig(response.data);
+        setMailboxConfig(response.data[0]);
         console.log(`✅ Loaded mailbox configuration`);
       } else {
         setError(prev => ({ ...prev, mailboxConfig: response.error || 'Failed to load mailbox config' }));
@@ -216,10 +217,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loadLogs = async () => {
     if (loading.logs) return; // Prevent duplicate calls
-    
+
     setLoading(prev => ({ ...prev, logs: true }));
     setError(prev => ({ ...prev, logs: null }));
-    
+
     try {
       const response = await apiService.getLogs();
       if (response.success && response.data) {
@@ -284,7 +285,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateMailboxConfig = async (config: MailboxConfig): Promise<boolean> => {
     const response = await apiService.updateMailboxConfig(config);
     if (response.success && response.data) {
-      setMailboxConfig(response.data);
+      setMailboxConfig(response.data[0]);
       return true;
     }
     return false;

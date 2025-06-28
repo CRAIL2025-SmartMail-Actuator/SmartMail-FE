@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Mail, 
-  Search, 
-  Filter, 
-  RefreshCw, 
-  Star, 
-  Archive, 
-  Trash2, 
-  Reply, 
-  Forward, 
+import {
+  Mail,
+  Search,
+  Filter,
+  RefreshCw,
+  Star,
+  Archive,
+  Trash2,
+  Reply,
+  Forward,
   MoreHorizontal,
   Paperclip,
   Flag,
@@ -27,7 +27,7 @@ import {
 import { apiService } from '../../services/api';
 
 interface EmailMessage {
-  id: string;
+  id: number;
   from: string;
   fromName: string;
   to: string;
@@ -76,7 +76,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -105,11 +105,11 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
           to: email.to,
           subject: email.subject,
           body: email.body,
-          timestamp: email.receivedAt,
-          isRead: email.status !== 'pending',
+          timestamp: email.timestamp,
+          isRead: email.is_read,
           isStarred: false, // Default value
           hasAttachments: false, // Default value
-          priority: email.confidence > 0.8 ? 'high' : 'normal',
+          priority: email.priority,
           category: email.category,
           thread: [],
           labels: email.category ? [email.category] : []
@@ -129,7 +129,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
   const generateAIResponse = async (email: EmailMessage) => {
     setIsGeneratingAI(true);
     setShowAIPanel(true);
-    
+
     try {
       const response = await apiService.generateAIResponse(email.id, {
         tone: 'professional',
@@ -146,7 +146,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
           reasoning: response.data.reasoning,
           responseId: response.data.response_id
         };
-        
+
         setAiResponse(aiResponseData);
         setReplyText(aiResponseData.suggestion);
       } else {
@@ -166,7 +166,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
   const generateMockAIResponse = (email: EmailMessage) => {
     // Mock AI response for demo purposes
     let mockResponse: AIResponse;
-    
+
     if (email.subject.toLowerCase().includes('payment') || email.subject.toLowerCase().includes('invoice')) {
       mockResponse = {
         suggestion: `Dear ${email.fromName},\n\nThank you for reaching out regarding the payment processing issue with invoice #INV-2024-001.\n\nI understand the urgency of this matter and I'm here to help resolve it quickly. Error code 4001 typically indicates a temporary gateway issue. I've escalated this to our payment processing team and they're investigating immediately.\n\nIn the meantime, I've also sent you an alternative payment link that should work around this issue. You should receive it within the next 10 minutes.\n\nI'll keep you updated on the progress and ensure this is resolved today. Please don't hesitate to reach out if you have any questions.\n\nBest regards,\n[Your Name]\nCustomer Success Team`,
@@ -195,7 +195,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
         responseId: 'mock_response_' + Date.now()
       };
     }
-    
+
     setAiResponse(mockResponse);
     setReplyText(mockResponse.suggestion);
   };
@@ -206,7 +206,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
     setIsSendingReply(true);
     try {
       const response = await apiService.sendReply(selectedEmail.id, replyText);
-      
+
       if (response.success) {
         console.log('Reply sent successfully:', response.data);
         // Reset the reply panel
@@ -256,14 +256,14 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
 
   const filteredEmails = emails.filter(email => {
     const matchesSearch = email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         email.fromName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         email.body.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = filterBy === 'all' || 
-                         (filterBy === 'unread' && !email.isRead) ||
-                         (filterBy === 'starred' && email.isStarred) ||
-                         (filterBy === 'important' && email.priority === 'high');
-    
+      email.fromName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      email.body.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFilter = filterBy === 'all' ||
+      (filterBy === 'unread' && !email.isRead) ||
+      (filterBy === 'starred' && email.isStarred) ||
+      (filterBy === 'important' && email.priority === 'high');
+
     return matchesSearch && matchesFilter;
   });
 
@@ -275,16 +275,17 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
     }
   };
 
-  const formatTimestamp = (date: Date) => {
+  const formatTimestamp = (date: string) => {
     const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-    
+    const newdate = new Date(date)
+    const diffInHours = (now.getTime() - newdate.getTime()) / (1000 * 60 * 60);
+
     if (diffInHours < 1) {
       return `${Math.floor(diffInHours * 60)}m ago`;
     } else if (diffInHours < 24) {
       return `${Math.floor(diffInHours)}h ago`;
     } else {
-      return date.toLocaleDateString();
+      return newdate.toLocaleDateString();
     }
   };
 
@@ -308,11 +309,10 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
   return (
     <div className="h-full flex bg-gray-50">
       {/* Email List Panel */}
-      <div className={`${
-        isMobile 
-          ? showEmailList ? 'w-full' : 'hidden' 
-          : showAIPanel ? 'w-1/4' : 'w-1/3'
-      } bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      <div className={`${isMobile
+        ? showEmailList ? 'w-full' : 'hidden'
+        : showAIPanel ? 'w-1/4' : 'w-1/3'
+        } bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
         {/* Search and Filter Header */}
         <div className="p-3 sm:p-4 border-b border-gray-200">
           <div className="flex items-center space-x-2 sm:space-x-3 mb-3">
@@ -326,7 +326,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                 placeholder="Search emails..."
               />
             </div>
-            <button 
+            <button
               onClick={loadEmails}
               disabled={isLoading}
               className="p-2 text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-50"
@@ -334,17 +334,16 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
-          
+
           <div className="flex space-x-1 sm:space-x-2 overflow-x-auto">
             {['all', 'unread', 'starred', 'important'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setFilterBy(filter as any)}
-                className={`px-2 sm:px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${
-                  filterBy === filter
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className={`px-2 sm:px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${filterBy === filter
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
               >
                 {filter.charAt(0).toUpperCase() + filter.slice(1)}
               </button>
@@ -364,9 +363,8 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                 <div
                   key={email.id}
                   onClick={() => handleEmailSelect(email)}
-                  className={`p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                    selectedEmail?.id === email.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-                  } ${!email.isRead ? 'bg-blue-25' : ''}`}
+                  className={`p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedEmail?.id === email.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
+                    } ${!email.isRead ? 'bg-blue-25' : ''}`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
@@ -386,11 +384,11 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                       <span className="text-xs text-gray-400">{formatTimestamp(email.timestamp)}</span>
                     </div>
                   </div>
-                  
+
                   <h4 className={`text-sm mb-1 truncate ${!email.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
                     {email.subject}
                   </h4>
-                  
+
                   <p className="text-xs text-gray-500 line-clamp-2 mb-2">
                     {email.body}
                   </p>
@@ -418,11 +416,10 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
       </div>
 
       {/* Email Detail and Reply Panel */}
-      <div className={`${
-        isMobile 
-          ? showEmailList ? 'hidden' : 'w-full' 
-          : 'flex-1'
-      } flex flex-col`}>
+      <div className={`${isMobile
+        ? showEmailList ? 'hidden' : 'w-full'
+        : 'flex-1'
+        } flex flex-col`}>
         {selectedEmail ? (
           <>
             {/* Email Header */}
@@ -452,19 +449,19 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-                  <button 
+                  <button
                     onClick={() => handleEmailAction(selectedEmail.id, 'star')}
                     className="p-2 text-gray-400 hover:text-yellow-500 transition-colors"
                   >
                     <Star className={`h-4 w-4 sm:h-5 sm:w-5 ${selectedEmail.isStarred ? 'text-yellow-500 fill-current' : ''}`} />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleEmailAction(selectedEmail.id, 'archive')}
                     className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     <Archive className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleEmailAction(selectedEmail.id, 'delete')}
                     className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                   >
@@ -543,11 +540,10 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                     {aiResponse && (
                       <div className="mt-2 text-sm text-gray-600">
                         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            aiResponse.confidence >= 0.9 ? 'bg-green-100 text-green-800' :
+                          <span className={`px-2 py-1 rounded-full text-xs ${aiResponse.confidence >= 0.9 ? 'bg-green-100 text-green-800' :
                             aiResponse.confidence >= 0.7 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                              'bg-red-100 text-red-800'
+                            }`}>
                             {Math.round(aiResponse.confidence * 100)}% confidence
                           </span>
                           <span className="text-xs text-gray-500">{aiResponse.tone}</span>

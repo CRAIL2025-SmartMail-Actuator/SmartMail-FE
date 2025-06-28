@@ -26,16 +26,22 @@ export interface CompanyDocument {
 }
 
 export interface Email {
-  id: string;
+  id: number;
   from: string;
+  from_name: string | null;
   to: string;
   subject: string;
   body: string;
-  receivedAt: Date;
-  category?: string;
-  replySuggestion?: string;
-  confidence: number;
-  status: 'pending' | 'sent' | 'failed' | 'draft';
+  html_body: string | null;
+  timestamp: string; // ISO 8601 format
+  thread_id: string;
+  is_read: boolean;
+  is_starred: boolean;
+  has_attachments: boolean;
+  labels: string[];
+  priority: 'low' | 'normal' | 'high';
+  category: string | null;
+  ai_analysis: any | null; // replace `any` with a specific type if known
 }
 
 export interface MailboxConfig {

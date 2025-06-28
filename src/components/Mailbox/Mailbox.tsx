@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../Layout/Layout';
 import { InboxView } from './InboxView';
 import { useApp } from '../../contexts/AppContext';
-import { 
-  Mail, 
-  Inbox, 
+import {
+  Mail,
+  Inbox,
   Send,
   Archive,
   Trash2,
@@ -116,15 +116,13 @@ export const Mailbox: React.FC = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`group inline-flex items-center py-4 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`group inline-flex items-center py-4 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
                   >
-                    <Icon className={`mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 ${
-                      activeTab === tab.id ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                    }`} />
+                    <Icon className={`mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 ${activeTab === tab.id ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                      }`} />
                     <span className="hidden sm:inline">{tab.name}</span>
                     <span className="sm:hidden">{tab.name.split(' ')[0]}</span>
                   </button>
