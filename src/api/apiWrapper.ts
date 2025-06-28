@@ -1,4 +1,9 @@
 import axios, { AxiosError, type AxiosRequestConfig, HttpStatusCode } from "axios";
+import type { Dispatch } from "react";
+import type { CRAILContextAction } from "../contexts/proptypes";
+import { CONTEXT_PATHS } from "../contexts/CRAIL-Context";
+
+console.log("API Base URL:", import.meta.env.CRAIL_API_BASE_URL);
 
 const AxiosInstance = axios.create({
     baseURL: import.meta.env.CRAIL_API_BASE_URL,
@@ -8,18 +13,14 @@ const AxiosInstance = axios.create({
 });
 
 AxiosInstance.interceptors.request.use(
-    config => {
-
+    (config) => {
         const token = sessionStorage.getItem("token") || localStorage.getItem("token");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
-    error => {
-        // Handle request error
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
 const handleErrors = (error: AxiosError) => {
@@ -35,63 +36,66 @@ const handleErrors = (error: AxiosError) => {
     return Promise.reject(error);
 };
 
-
 const POST = async (
     url: string,
+    dispatch: Dispatch<CRAILContextAction>,
     data?: unknown,
-    config?: AxiosRequestConfig<unknown> | undefined,
-
+    config?: AxiosRequestConfig<unknown>
 ) => {
-    return await AxiosInstance.post(`${url}`, data, config)
-        .then((response) => {
-            return response.data;
-        })
-        .catch((error) => {
-            return handleErrors(error);
-        });
+    dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: true } });
+
+    return await AxiosInstance.post(url, data, config)
+        .then((response) => response.data)
+        .catch(handleErrors)
+        .finally(() =>
+            dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: false } })
+        );
 };
 
 const GET = async (
-    url: string
-
+    url: string,
+    dispatch: Dispatch<CRAILContextAction>,
+    config?: AxiosRequestConfig<unknown>
 ) => {
-    return await AxiosInstance.get(`${url}`)
-        .then((response) => {
-            return response.data;
-        })
-        .catch((error) => {
-            return handleErrors(error);
-        });
+    dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: true } });
+
+    return await AxiosInstance.get(url, config)
+        .then((response) => response.data)
+        .catch(handleErrors)
+        .finally(() =>
+            dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: false } })
+        );
 };
 
 const DELETE = async (
     url: string,
-    config?: AxiosRequestConfig<unknown> | undefined,
-
+    dispatch: Dispatch<CRAILContextAction>,
+    config?: AxiosRequestConfig<unknown>
 ) => {
-    return await AxiosInstance.delete(`${url}`, config)
-        .then((response) => {
-            return response.data;
-        })
-        .catch((error) => {
-            return handleErrors(error);
-        });
+    dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: true } });
+
+    return await AxiosInstance.delete(url, config)
+        .then((response) => response.data)
+        .catch(handleErrors)
+        .finally(() =>
+            dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: false } })
+        );
 };
-
-
 
 const PUT = async (
     url: string,
+    dispatch: Dispatch<CRAILContextAction>,
     data?: unknown,
-    config?: AxiosRequestConfig<unknown> | undefined,
-
+    config?: AxiosRequestConfig<unknown>
 ) => {
-    return await AxiosInstance.put(`${url}`, data, config)
-        .then((response) => {
-            return response.data;
-        })
-        .catch((error) => {
-            return handleErrors(error);
-        });
+    dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: true } });
+
+    return await AxiosInstance.put(url, data, config)
+        .then((response) => response.data)
+        .catch(handleErrors)
+        .finally(() =>
+            dispatch({ type: CONTEXT_PATHS.SHOW_SPINNER, payload: { showSpinner: false } })
+        );
 };
-export { POST, GET, DELETE, PUT }
+
+export { POST, GET, DELETE, PUT };

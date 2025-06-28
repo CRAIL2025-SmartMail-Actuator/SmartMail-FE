@@ -3,10 +3,12 @@ import { HiEye, HiEyeOff } from "react-icons/hi";
 import '../styles.css'
 import { useNavigate } from "react-router-dom";
 import { ROUTEPATHS } from "../routing";
+import { POST } from "../api/apiWrapper";
+import { useCRAILContext } from "../contexts/useCRAILContext";
 
 interface FormDataTypes {
     password: string;
-    username: string;
+    email: string;
 }
 
 const Login: FC = () => {
@@ -14,9 +16,10 @@ const Login: FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState<FormDataTypes>({
         password: '',
-        username: '',
+        email: '',
     });
     const navigate = useNavigate()
+    const { dispatch } = useCRAILContext();
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -25,6 +28,18 @@ const Login: FC = () => {
         setFormData((prev) => {
             return { ...prev, [name]: value }
         })
+    }
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setError('');
+        if (!formData.email || !formData.password) {
+            setError('Please fill in all fields');
+            return;
+        }
+        await POST('/login', dispatch, formData, { headers: { 'Content-Type': 'application/json' } })
+        console.log("Login successful");
+        navigate(ROUTEPATHS.MAIL);
     }
 
     return (
@@ -40,7 +55,7 @@ const Login: FC = () => {
                         </span>
                     </h2>
                 </div>
-                <form className="w-full flex flex-col gap-5">
+                <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
                     <div>
                         <label htmlFor="username" className="form-label">
                             Username
@@ -48,10 +63,10 @@ const Login: FC = () => {
                         <input
                             type="email"
                             id="username"
-                            name="username"
-                            value={formData.username}
+                            name="email"
+                            value={formData.email}
                             onChange={handleInputChange}
-                            placeholder="Student email"
+                            placeholder="User email"
                             className="form-input bg-transparent w-full"
                             required
                         />
@@ -102,7 +117,6 @@ const Login: FC = () => {
                     <button
                         type="submit"
                         className="registration-button w-full mt-2"
-                        onClick={() => { }}
                     >
                         Login
                     </button>

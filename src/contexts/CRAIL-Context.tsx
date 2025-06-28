@@ -12,8 +12,18 @@ export const CRAILContext = createContext<ICRAILContext>({
     }
 });
 
+export const CONTEXT_PATHS = {
+    SHOW_SPINNER: 'SHOW_SPINNER',
+}
+
 const CRAILContextReducer: Reducer<CRAILContextState, CRAILContextAction> = (state, action) => {
     switch (action.type) {
+        case CONTEXT_PATHS.SHOW_SPINNER:
+            console.log("Reducer action:", action.type, "with payload:", action.payload);
+            return {
+                ...state,
+                showSpinner: action.payload.showSpinner,
+            };
         default:
             console.warn(`Unhandled action type: ${action.type}`);
             return state;
