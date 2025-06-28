@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'Inter';
+    src: url('../../assets/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype-variations');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('../../assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf') format('truetype-variations');
+    font-weight: 100 900;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Baloo 2';
+    src: url('../../assets/fonts/Baloo2-VariableFont_wght.ttf') format('truetype-variations');
+    font-weight: 400 800;
+    font-style: normal;
+}
+
+.registration-button {
+    @apply w-full h-14 rounded-3xl bg-[#195476] text-lg font-medium text-white transition-colors hover:bg-[#195476] cursor-pointer;
+    @apply disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:hover:bg-gray-300;
+}
+
+.user-management-inter {
+    font-family: 'Inter';
+}
+
+.user-management {
+    font-family: 'Inter';
+    color: #30313D;
+    scrollbar-width: thin;
+    scrollbar-color: #91ae71 #f5faf1;
+}
+
+.user-management h1 {
+    font-family: 'Baloo 2', cursive;
+}
+
+.form-label {
+    @apply text-[20px] lg:text-[16px] text-[#001522] font-[500] leading-6;
+}
+
+.form-input {
+    @apply h-12 lg:h-11 text-base lg:text-sm text-[#5D5F63] rounded-xl border border-[#E5E7EB] px-4 focus:border-[#195476] focus:outline-none focus:ring-1 focus:ring-[#195476] w-full;
+}
+
+.login-header {
+    @apply text-[#195476] inline-block text-center bg-clip-text
+}
+
+.user-management .phone-number-input-container {
+    @apply rounded-xl border focus:border-2 focus:border-[#91AE71] focus:outline-none focus:ring-2 focus:ring-[#91AE71] w-full;
+}
+
+.user-management .react-tel-input .flag-dropdown {
+    @apply rounded-l-xl focus:rounded-l-xl border focus:outline-none bg-white;
+}
+
+.user-management .react-tel-input .flag-dropdown.open {
+    @apply rounded-l-xl focus:rounded-l-xl border focus:outline-none bg-white;
+}
+
+.user-management .react-tel-input .flag-dropdown.open .selected-flag {
+    @apply rounded-l-xl focus:rounded-l-xl border focus:outline-none bg-white;
+}
+
+.user-management .react-tel-input .country-list .country.highlight {
+    @apply mx-0;
+}
+
+.user-management .form-input.error {
+    @apply border-[3px] border-[#D12E31] ring-1 ring-[#D12E31] focus:border-[#D12E31] focus:ring-[#D12E31];
+}
+
+/* Error state styles */
+.user-management .form-input.error {
+    @apply border-[#D12E31] border-2;
+}
+
+.user-management .error-message {
+    @apply mt-2 text-[#DC2626] text-[14px];
+}
+
+/* Custom Select Styles */
+.user-management select.form-input {
+    @apply appearance-none bg-white cursor-pointer rounded-[16px] border border-[#E5E7EB] h-[56px] text-[16px] leading-[24px] text-[#001522];
+    background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23001522' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: right 16px center;
+    background-repeat: no-repeat;
+    background-size: 24px;
+    padding: 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.user-management select.form-input:focus {
+    @apply outline-none border-[#91AE71] ring-1 ring-[#91AE71];
+}
+
+/* Chrome-specific styles */
+.user-management select.form-input::-webkit-select-placeholder {
+    color: #5d5f63;
+}
+
+.user-management select.form-input option {
+    @apply py-3 px-4 text-[16px] leading-[24px] text-[#001522];
+    background-color: white;
+    color: #001522;
+}
+
+/* Chrome and Safari specific styles */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .user-management select.form-input option {
+        padding: 12px;
+        background: white;
+    }
+
+    .user-management select.form-input option:checked {
+        background: linear-gradient(0deg, #f5faf1 0%, #f5faf1 100%);
+    }
+
+    .user-management select.form-input option:hover {
+        background: linear-gradient(0deg, #f5faf1 0%, #f5faf1 100%);
+    }
+}
+
+/* Firefox specific styles */
+@-moz-document url-prefix() {
+    .user-management select.form-input option {
+        background-color: white;
+    }
+
+    .user-management select.form-input option:checked,
+    .user-management select.form-input option:hover {
+        background-color: #f5faf1;
+        color: #001522;
+    }
+}
+
+/* Style for the placeholder option */
+.user-management select.form-input option[value=''] {
+    color: #5d5f63;
+}
+
+/* Remove default focus outline */
+.user-management select.form-input:focus-visible {
+    outline: none;
+}
+
+/* Ensure proper text alignment and spacing */
+.user-management select.form-input {
+    text-indent: 0;
+    padding-right: 48px;
+}
+
+.user-management .form-checkbox {
+    @apply h-7 w-7 lg:h-5 lg:w-5 rounded border-gray-300 text-[#91AE71] focus:ring-[#91AE71];
+}
+
+/* Learning Style Form Radio Styles */
+.user-management input[type='radio']:checked+div {
+    border-color: #91ae71;
+}
+
+.user-management input[type='radio']:checked+div .radio-box {
+    background-color: #91ae71;
+    border-color: #91ae71;
+}
+
+.user-management input[type='radio']:checked+div .radio-box svg {
+    display: block;
+}
+
+.user-management input[type='radio']+div .radio-box svg {
+    display: none;
+}
+
+.user-management .radio-box {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #002032;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    transition: all 0.2s ease-in-out;
+}
+
+.user-management input[type='radio']:checked+div .radio-box {
+    background-color: #91ae71;
+    border-color: #91ae71;
+    border: 1px solid #002032;
+}
+
+.user-management .form-checkbox-label {
+    @apply text-sm text-gray-600;
+}
+
+.user-management .form-checkbox-link {
+    @apply underline hover:text-[#91AE71];
+}
+
+/* Custom Scrollbar Styles */
+.user-management::-webkit-scrollbar {
+    width: 8px;
+}
+
+.user-management::-webkit-scrollbar-track {
+    background: #f5faf1;
+    border-radius: 4px;
+}
+
+.user-management::-webkit-scrollbar-thumb {
+    background-color: #91ae71;
+    border-radius: 4px;
+    border: 2px solid #f5faf1;
+}
+
+.user-management::-webkit-scrollbar-thumb:hover {
+    background-color: #7a9459;
+}
+
+.react-tel-input .form-control {
+    width: 100% !important;
+    height: 41px !important;
+    border-radius: 0.75rem !important;
+}
+
+.form-control:focus {
+    box-shadow: none !important;
+}
+
+.StripeElement {
+    width: 100%;
+}
+
+.promo-code {
+    position: fixed;
+    top: 0;
+    z-index: 99;
+    right: 10%;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    width: fit-content;
+    margin: 20px auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: fadeSlideIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeSlideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
