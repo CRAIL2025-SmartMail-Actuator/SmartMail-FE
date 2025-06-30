@@ -60,16 +60,16 @@ export const Sidebar: React.FC = () => {
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
         {/* Logo and Brand */}
-        <div className="flex items-center py-4 sm:py-5 border-b border-gray-700">
-          {/* <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mr-2 sm:mr-3 flex-shrink-0" />
+        <div className="flex items-center px-5 py-4 sm:py-5 border-b border-gray-700">
+          <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mr-2 sm:mr-3 flex-shrink-0" />
           <div className="min-w-0">
-            <h1 className="text-m sm:text-sm font-bold truncate">Smart Email</h1>
+            <h1 className="text-m sm:text-sm font-bold truncate">SmartMail</h1>
             <span className='text-[10px]'>Powered By Cognine Technologies</span>
-          </div> */}
-          <img
+          </div>
+          {/* <img
             src={smartMail}
             alt="Smart Mail Logo"
-            className="w-full bg-transparent"></img>
+            className="w-full bg-transparent"></img> */}
         </div>
 
         {/* Navigation */}
