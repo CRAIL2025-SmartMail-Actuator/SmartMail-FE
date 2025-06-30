@@ -113,20 +113,25 @@ export const Register: React.FC = () => {
             {/* Domain Field (Optional) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Company Domain <span className="text-gray-400 text-xs">(Optional)</span>
+                Company Domain
               </label>
               <div className="relative">
-                <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <input
-                  type="text"
+                <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
+                <select
                   name="domain"
                   value={formData.domain}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="example.com"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white appearance-none"
+                  required
                   autoComplete="organization"
-                />
+                >
+                  <option value="" disabled>
+                    Select a domain
+                  </option>
+                  <option value="Logistics">Logistics</option>
+                  <option value="Health Care">Health Care</option>
+                </select>
               </div>
             </div>
 
@@ -207,8 +212,8 @@ export const Register: React.FC = () => {
             <div className="text-center">
               <p className="text-gray-600 text-sm">
                 Already have an account?{' '}
-                <Link 
-                  to="/login" 
+                <Link
+                  to="/login"
                   className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
                 >
                   Sign in

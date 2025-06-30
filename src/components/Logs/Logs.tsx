@@ -3,11 +3,11 @@ import { Layout } from '../Layout/Layout';
 import { useApp } from '../../contexts/AppContext';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorMessage } from '../common/ErrorMessage';
-import { 
-  FileText, 
-  Filter, 
-  Download, 
-  Search, 
+import {
+  FileText,
+  Filter,
+  Download,
+  Search,
   Calendar,
   CheckCircle,
   AlertTriangle,
@@ -50,15 +50,15 @@ export const Logs: React.FC = () => {
   }, []);
 
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       log.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.action.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesType = filters.type === 'all' || log.type === filters.type;
     const matchesEmail = filters.email === '' || log.email.toLowerCase().includes(filters.email.toLowerCase());
     const matchesConfidence = log.confidence * 100 >= filters.confidenceMin && log.confidence * 100 <= filters.confidenceMax;
-    
+
     let matchesDate = true;
     if (filters.dateFrom) {
       matchesDate = matchesDate && log.timestamp >= new Date(filters.dateFrom);
@@ -66,7 +66,7 @@ export const Logs: React.FC = () => {
     if (filters.dateTo) {
       matchesDate = matchesDate && log.timestamp <= new Date(filters.dateTo);
     }
-    
+
     return matchesSearch && matchesType && matchesEmail && matchesConfidence && matchesDate;
   });
 
@@ -128,8 +128,8 @@ export const Logs: React.FC = () => {
   if (error.logs && logs.length === 0) {
     return (
       <Layout title="Activity Logs" subtitle="Monitor email processing and AI response activities">
-        <ErrorMessage 
-          message={error.logs} 
+        <ErrorMessage
+          message={error.logs}
           onRetry={() => loadPageData('logs')}
         />
       </Layout>
@@ -141,10 +141,18 @@ export const Logs: React.FC = () => {
       <div className="space-y-6">
         {/* Header with Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Activity Logs</h2>
-            <p className="text-gray-600">Track email processing and AI response activities</p>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-x-2">
+              <h2 className="text-xl font-semibold text-gray-900">Activity Logs</h2>
+              <div className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm uppercase">
+                Coming Soon
+              </div>
+            </div>
+            <p className="text-gray-600">
+              Track email processing and AI response activities
+            </p>
           </div>
+
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
             <button
               onClick={() => loadPageData('logs')}
@@ -342,7 +350,7 @@ export const Logs: React.FC = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Avg Confidence</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {filteredLogs.length > 0 
+                  {filteredLogs.length > 0
                     ? Math.round(filteredLogs.reduce((sum, log) => sum + log.confidence, 0) / filteredLogs.length * 100)
                     : 0}%
                 </p>
@@ -409,8 +417,8 @@ export const Logs: React.FC = () => {
                         <div className="flex items-center">
                           <div className="text-sm text-gray-900">{Math.round(log.confidence * 100)}%</div>
                           <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
                               style={{ width: `${log.confidence * 100}%` }}
                             ></div>
                           </div>
@@ -437,7 +445,7 @@ export const Logs: React.FC = () => {
               <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No logs found</h3>
               <p className="text-gray-600">
-                {logs.length === 0 
+                {logs.length === 0
                   ? 'No activity logs available yet'
                   : 'No logs match your current filters'
                 }
@@ -462,7 +470,7 @@ export const Logs: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -487,12 +495,12 @@ export const Logs: React.FC = () => {
                   <p className="mt-1 text-sm text-gray-900">{selectedLog.timestamp.toLocaleString()}</p>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Subject</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedLog.subject}</p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Action</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedLog.action}</p>

@@ -11,6 +11,7 @@ import {
   BarChart3,
   AlertTriangle
 } from 'lucide-react';
+import { SentMailView } from './SentMailView';
 
 type MailboxTab = 'inbox' | 'sent' | 'archive' | 'trash' | 'analytics';
 
@@ -60,13 +61,9 @@ export const Mailbox: React.FC = () => {
         return <InboxView emailConfig={{ email: mailboxConfig.email, appPassword: mailboxConfig.appPassword }} />;
       case 'sent':
         return (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Send className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Sent Emails</h3>
-              <p className="text-gray-600">View your sent emails and their status</p>
-            </div>
-          </div>
+          <><SentMailView /></>
+
+
         );
       case 'archive':
         return (

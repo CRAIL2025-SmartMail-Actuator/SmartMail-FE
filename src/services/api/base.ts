@@ -15,7 +15,7 @@ export interface ApiResponse<T> {
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
+  documents: T[];
   pagination: {
     current_page: number;
     total_pages: number;
@@ -65,7 +65,7 @@ export class BaseApiService {
       },
       async (error) => {
         console.error('❌ Response Error:', error.response?.data || error.message);
-        
+
         if (error.response?.status === 401) {
           // Token expired, try to refresh
           const refreshed = await this.refreshToken();
@@ -78,7 +78,7 @@ export class BaseApiService {
             window.location.href = '/login';
           }
         }
-        
+
         return Promise.reject(error);
       }
     );
@@ -89,7 +89,7 @@ export class BaseApiService {
       const refreshToken = localStorage.getItem('refresh_token');
       if (!refreshToken) return false;
 
-      const response: AxiosResponse<ApiResponse<{ access_token: string; expires_in: number }>> = 
+      const response: AxiosResponse<ApiResponse<{ access_token: string; expires_in: number }>> =
         await this.axiosInstance.post('/auth/refresh', {
           refresh_token: refreshToken
         });
@@ -98,7 +98,7 @@ export class BaseApiService {
         localStorage.setItem('access_token', response.data.data.access_token);
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Token refresh error:', error);

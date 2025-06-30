@@ -3,20 +3,21 @@ import { Layout } from '../Layout/Layout';
 import { useApp } from '../../contexts/AppContext';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorMessage } from '../common/ErrorMessage';
-import { 
-  Upload, 
-  FileText, 
-  File, 
-  X, 
-  Check, 
+import {
+  Upload,
+  FileText,
+  File,
+  X,
+  Check,
   AlertCircle,
   Eye,
   Tag,
   Trash2,
   RefreshCw
 } from 'lucide-react';
+import apiService from '../../services/api';
 
-interface UploadFile {
+export interface UploadFile {
   file: File;
   id: string;
   status: 'uploading' | 'success' | 'error';
@@ -25,6 +26,8 @@ interface UploadFile {
   error?: string;
 }
 
+// ... imports remain the same ...
+
 export const UploadData: React.FC = () => {
   const { categories, documents, loading, error, addDocument, deleteDocument, loadPageData } = useApp();
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
@@ -32,9 +35,7 @@ export const UploadData: React.FC = () => {
   const [previewDocument, setPreviewDocument] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load upload page data when component mounts
   useEffect(() => {
-    console.log('📁 Upload page mounted - loading categories and documents');
     loadPageData('upload');
   }, []);
 
@@ -62,13 +63,17 @@ export const UploadData: React.FC = () => {
     }
   };
 
-  const handleFiles = (files: File[]) => {
-    const validFiles = files.filter(file => {
-      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
-      return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
-    });
+  const handleFiles = async (files: File[]) => {
+    const validTypes = [
+      // 'application/pdf',
+      // 'application/msword',
+      // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      // 'text/plain',
+      "application/json"
+    ];
+    const validFiles = files.filter(file => validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024);
 
-    const newUploadFiles: UploadFile[] = validFiles.map(file => ({
+    const uploadingFiles: UploadFile[] = validFiles.map(file => ({
       file,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       status: 'uploading',
@@ -76,44 +81,36 @@ export const UploadData: React.FC = () => {
       selectedCategories: []
     }));
 
-    setUploadFiles(prev => [...prev, ...newUploadFiles]);
+    setUploadFiles(prev => [...prev, ...uploadingFiles]);
 
-    // Simulate upload process
-    newUploadFiles.forEach(uploadFile => {
-      simulateUpload(uploadFile);
-    });
+    // Start real upload
+    await uploadToServer(uploadingFiles);
   };
 
-  const simulateUpload = (uploadFile: UploadFile) => {
-    const interval = setInterval(() => {
-      setUploadFiles(prev => prev.map(file => {
-        if (file.id === uploadFile.id) {
-          const newProgress = Math.min(file.progress + Math.random() * 30, 100);
-          if (newProgress >= 100) {
-            clearInterval(interval);
-            return { ...file, status: 'success', progress: 100 };
-          }
-          return { ...file, progress: newProgress };
-        }
-        return file;
-      }));
-    }, 200);
-  };
+  const uploadToServer = async (uploadFiles: UploadFile[]) => {
+    const filesOnly = uploadFiles.map(f => f.file); // ✅ Extract actual File objects
 
-  const removeUploadFile = (id: string) => {
-    setUploadFiles(prev => prev.filter(file => file.id !== id));
-  };
+    try {
+      const result = await apiService.uploadDocument(filesOnly, []);
 
-  const updateFileCategories = (id: string, categories: string[]) => {
-    setUploadFiles(prev => prev.map(file => 
-      file.id === id ? { ...file, selectedCategories: categories } : file
-    ));
-  };
-
-  const saveDocument = async (uploadFile: UploadFile) => {
-    const success = await addDocument(uploadFile.file, uploadFile.selectedCategories);
-    if (success) {
-      removeUploadFile(uploadFile.id);
+      if (result.success) {
+        setUploadFiles(prev => prev.filter(f => !uploadFiles.find(u => u.id === f.id)));
+        await loadPageData('upload');
+      } else {
+        setUploadFiles(prev =>
+          prev.map(f => uploadFiles.find(u => u.id === f.id)
+            ? { ...f, status: 'error', error: result.error || 'Upload failed' }
+            : f
+          )
+        );
+      }
+    } catch (err) {
+      setUploadFiles(prev =>
+        prev.map(f => uploadFiles.find(u => u.id === f.id)
+          ? { ...f, status: 'error', error: 'Upload error' }
+          : f
+        )
+      );
     }
   };
 
@@ -148,11 +145,10 @@ export const UploadData: React.FC = () => {
   }
 
   if (error.categories || error.documents) {
-    const errorMessage = error.categories || error.documents;
     return (
       <Layout title="Upload Data" subtitle="Upload company documents to enhance AI knowledge base">
-        <ErrorMessage 
-          message={errorMessage || 'Failed to load data'} 
+        <ErrorMessage
+          message={error.categories || error.documents || 'Failed to load data'}
           onRetry={() => loadPageData('upload')}
         />
       </Layout>
@@ -161,45 +157,24 @@ export const UploadData: React.FC = () => {
 
   return (
     <Layout title="Upload Data" subtitle="Upload company documents to enhance AI knowledge base">
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header with Refresh Button */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Document Management</h2>
-            <p className="text-sm sm:text-base text-gray-600">Upload and organize your company documents</p>
-          </div>
-          <button
-            onClick={() => loadPageData('upload')}
-            disabled={loading.categories || loading.documents}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors text-sm"
-          >
-            <RefreshCw className={`h-4 w-4 ${(loading.categories || loading.documents) ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
-        </div>
-
-        {/* Upload Area */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="space-y-6">
+        {/* Upload UI */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div
-            className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all ${
-              isDragOver 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
+            className={`border-2 border-dashed rounded-xl p-6 text-center ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+              }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <Upload className={`h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-4 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-              Drop files here or click to upload
-            </h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-4">
-              Support for PDF, Word documents, and text files up to 10MB
+            <Upload className={`h-12 w-12 mx-auto mb-4 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Drop files here or click to upload</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              JSON files up to 10MB
             </p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
             >
               Choose Files
             </button>
@@ -207,100 +182,32 @@ export const UploadData: React.FC = () => {
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".pdf,.doc,.docx,.txt"
+              accept=".json"
               onChange={handleFileSelect}
               className="hidden"
             />
           </div>
         </div>
 
-        {/* Upload Progress */}
+        {/* Uploading Files (progress UI) */}
         {uploadFiles.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Upload Progress</h3>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Uploading...</h3>
             <div className="space-y-4">
-              {uploadFiles.map((uploadFile) => (
-                <div key={uploadFile.id} className="border border-gray-200 rounded-lg p-4">
+              {uploadFiles.map((file) => (
+                <div key={file.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      {getFileIcon(uploadFile.file.type)}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{uploadFile.file.name}</p>
-                        <p className="text-xs sm:text-sm text-gray-500">{formatFileSize(uploadFile.file.size)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {uploadFile.status === 'success' && (
-                        <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-                      )}
-                      {uploadFile.status === 'error' && (
-                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
-                      )}
-                      <button
-                        onClick={() => removeUploadFile(uploadFile.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                    <div
-                      className={`h-2 rounded-full transition-all ${
-                        uploadFile.status === 'success' ? 'bg-green-500' :
-                        uploadFile.status === 'error' ? 'bg-red-500' : 'bg-blue-500'
-                      }`}
-                      style={{ width: `${uploadFile.progress}%` }}
-                    />
-                  </div>
-
-                  {/* Category Selection */}
-                  {uploadFile.status === 'success' && (
-                    <div className="space-y-3">
+                      {getFileIcon(file.file.type)}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Assign Categories
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {categories.map((category) => (
-                            <label key={category.id} className="flex items-center">
-                              <input
-                                type="checkbox"
-                                checked={uploadFile.selectedCategories.includes(category.id)}
-                                onChange={(e) => {
-                                  const newCategories = e.target.checked
-                                    ? [...uploadFile.selectedCategories, category.id]
-                                    : uploadFile.selectedCategories.filter(id => id !== category.id);
-                                  updateFileCategories(uploadFile.id, newCategories);
-                                }}
-                                className="sr-only"
-                              />
-                              <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium cursor-pointer transition-colors ${
-                                uploadFile.selectedCategories.includes(category.id)
-                                  ? `${category.color} text-white`
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                              }`}>
-                                {category.name}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Save Button */}
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => saveDocument(uploadFile)}
-                          disabled={uploadFile.selectedCategories.length === 0}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-                        >
-                          Save Document
-                        </button>
+                        <p className="font-medium text-gray-900 text-sm truncate">{file.file.name}</p>
+                        <p className="text-xs text-gray-500">{formatFileSize(file.file.size)}</p>
                       </div>
                     </div>
-                  )}
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="h-2 rounded-full bg-blue-500 animate-pulse w-3/4" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -308,14 +215,11 @@ export const UploadData: React.FC = () => {
         )}
 
         {/* Existing Documents */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900">Uploaded Documents</h3>
-              <p className="text-sm text-gray-500">{documents.length} documents</p>
-            </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Uploaded Documents</h3>
+            <p className="text-sm text-gray-500">{documents.length} documents</p>
           </div>
-
           {documents.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {documents.map((document) => (
@@ -329,75 +233,40 @@ export const UploadData: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex space-x-1">
-                      <button
-                        onClick={() => setPreviewDocument(document)}
-                        className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-                      >
-                        <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <button onClick={() => setPreviewDocument(document)} className="text-gray-400 hover:text-blue-500">
+                        <Eye className="h-4 w-4" />
                       </button>
-                      <button 
-                        onClick={() => handleDeleteDocument(document.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <button onClick={() => handleDeleteDocument(document.id)} className="text-gray-400 hover:text-red-500">
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center text-xs sm:text-sm text-gray-500">
-                      <Tag className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      <span>Categories: {document.categories.length}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {document.categories.slice(0, 2).map((categoryId) => {
-                        const category = categories.find(c => c.id === categoryId);
-                        return category ? (
-                          <span key={categoryId} className={`${category.color} text-white text-xs px-2 py-1 rounded-full`}>
-                            {category.name}
-                          </span>
-                        ) : null;
-                      })}
-                      {document.categories.length > 2 && (
-                        <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                          +{document.categories.length - 2}
+                  <div className="flex flex-wrap gap-1">
+                    {document.categories?.slice(0, 2).map((catId) => {
+                      const cat = categories.find(c => c.id === catId);
+                      return cat ? (
+                        <span key={cat.id} className={`${cat.color} text-white text-xs px-2 py-1 rounded-full`}>
+                          {cat.name}
                         </span>
-                      )}
-                    </div>
+                      ) : null;
+                    })}
+                    {document.categories?.length > 2 && (
+                      <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                        +{document.categories.length - 2}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-8">
-              <FileText className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-sm sm:text-base text-gray-500">No documents uploaded yet</p>
+              <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-sm text-gray-500">No documents uploaded yet</p>
             </div>
           )}
         </div>
       </div>
-
-      {/* Preview Modal */}
-      {previewDocument && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">{previewDocument.name}</h3>
-              <button
-                onClick={() => setPreviewDocument(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-4 sm:p-6 overflow-y-auto max-h-[70vh]">
-              <div className="prose max-w-none">
-                <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap">{previewDocument.content}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </Layout>
   );
 };

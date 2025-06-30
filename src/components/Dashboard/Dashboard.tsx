@@ -41,6 +41,7 @@ export const Dashboard: React.FC = () => {
       changeType: 'positive' as const,
       icon: Mail,
       color: 'bg-blue-500',
+      comingsoon: false,
     },
     {
       name: 'Categories',
@@ -49,6 +50,7 @@ export const Dashboard: React.FC = () => {
       changeType: 'positive' as const,
       icon: Settings,
       color: 'bg-purple-500',
+      comingsoon: false,
     },
     {
       name: 'Documents',
@@ -57,6 +59,7 @@ export const Dashboard: React.FC = () => {
       changeType: 'neutral' as const,
       icon: FileText,
       color: 'bg-green-500',
+      comingsoon: false,
     },
     {
       name: 'Success Rate',
@@ -65,6 +68,7 @@ export const Dashboard: React.FC = () => {
       changeType: 'positive' as const,
       icon: TrendingUp,
       color: 'bg-orange-500',
+      comingsoon: true
     },
   ];
 
@@ -118,21 +122,35 @@ export const Dashboard: React.FC = () => {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {stats.map((stat) => (
-            <div key={stat.name} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
+            <div
+              key={stat.name}
+              className="relative bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
+            >
+              {stat.comingsoon && (
+                <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm uppercase">
+                  Coming Soon
+                </div>
+              )}
               <div className="flex items-center">
                 <div className={`${stat.color} p-2 sm:p-3 rounded-lg flex-shrink-0`}>
                   <stat.icon className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
                 </div>
                 <div className="ml-3 sm:ml-4 min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{stat.name}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                    {stat.name}
+                  </p>
                   <div className="flex items-center">
-                    <p className="text-lg sm:text-2xl font-semibold text-gray-900">{stat.value}</p>
-                    <span className={`ml-1 sm:ml-2 text-xs font-medium px-1 sm:px-2 py-1 rounded-full ${stat.changeType === 'positive'
-                        ? 'bg-green-100 text-green-800'
-                        : stat.changeType === 'negative'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                    <p className="text-lg sm:text-2xl font-semibold text-gray-900">
+                      {stat.value}
+                    </p>
+                    <span
+                      className={`ml-1 sm:ml-2 text-xs font-medium px-1 sm:px-2 py-1 rounded-full ${stat.changeType === "positive"
+                        ? "bg-green-100 text-green-800"
+                        : stat.changeType === "negative"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                        }`}
+                    >
                       {stat.change}
                     </span>
                   </div>
@@ -140,6 +158,7 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           ))}
+
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
@@ -165,8 +184,8 @@ export const Dashboard: React.FC = () => {
                   {recentEmails.map((email) => (
                     <div key={email.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className={`p-2 rounded-full flex-shrink-0 ${email.status === 'sent' ? 'bg-green-100' :
-                          email.status === 'pending' ? 'bg-yellow-100' :
-                            email.status === 'failed' ? 'bg-red-100' : 'bg-gray-100'
+                        email.status === 'pending' ? 'bg-yellow-100' :
+                          email.status === 'failed' ? 'bg-red-100' : 'bg-gray-100'
                         }`}>
                         {email.status === 'sent' ? <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" /> :
                           email.status === 'pending' ? <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" /> :
@@ -223,9 +242,9 @@ export const Dashboard: React.FC = () => {
                   {recentLogs.map((log) => (
                     <div key={log.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className={`p-2 rounded-full flex-shrink-0 ${log.type === 'sent' ? 'bg-green-100' :
-                          log.type === 'failed' ? 'bg-red-100' :
-                            log.type === 'pending' ? 'bg-yellow-100' :
-                              'bg-blue-100'
+                        log.type === 'failed' ? 'bg-red-100' :
+                          log.type === 'pending' ? 'bg-yellow-100' :
+                            'bg-blue-100'
                         }`}>
                         {log.type === 'sent' ? <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" /> :
                           log.type === 'failed' ? <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" /> :
@@ -252,9 +271,13 @@ export const Dashboard: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 sm:py-8">
-                  <FileText className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-sm sm:text-base">No logs loaded</p>
+                <div className='d-flex justify-center items-center w-[full]'>
+                  <div className="text-center py-6 sm:py-8">
+                    <FileText className="h-8 w-8 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-sm sm:text-base">No logs loaded</p>
+                  </div><div className="text-center bg-yellow-100 text-yellow-800 text-[16px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shadow-sm uppercase">
+                    Coming Soon
+                  </div>
                 </div>
               )}
             </div>
