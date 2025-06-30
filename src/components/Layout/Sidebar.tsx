@@ -64,7 +64,7 @@ export const Sidebar: React.FC = () => {
           <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mr-2 sm:mr-3 flex-shrink-0" />
           <div className="min-w-0">
             <h1 className="text-m sm:text-sm font-bold truncate">SmartMail</h1>
-            <span className='text-[10px]'>Powered By Cognine Technologies</span>
+            <span className='text-[10px]'>Powered by Cognine Technologies</span>
           </div>
           {/* <img
             src={smartMail}

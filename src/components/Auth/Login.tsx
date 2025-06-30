@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Bot, Info } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import EmailDemo from './MailDemo';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -44,14 +45,19 @@ export const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <div style={{ marginRight: "10px" }} className='border-r-2'>
+
+        <EmailDemo />
+
+      </div>
       <div className="w-full max-w-md">
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 transform hover:scale-105 transition-transform">
             <Bot className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-600 mt-2">Sign in to your AI Email Responder</p>
+          <h1 className="text-3xl font-bold text-gray-900">SmartMail</h1>
+          <p className="text-gray-600 mt-2">Powered by Cognine Technologies</p>
         </div>
 
         {/* Login Form */}
