@@ -554,7 +554,7 @@ export const MailboxSetup: React.FC<MailboxSetupProps> = ({ onConfigured }) => {
         {/* Help and Security Info */}
         <div className="space-y-6">
           {/* App Password Help */}
-          <div className={`bg-blue-50 border border-blue-200 rounded-xl p-4 lg:p-6 transition-all duration-300 ${showHelp ? 'block' : 'hidden lg:block'}`}>
+          <div className={`bg-blue-50 border border-blue-200 rounded-xl p-4 lg:p-6 transition-all duration-300 ${showHelp ? 'block' : 'hidden'}`}>
             <h3 className="font-semibold text-blue-900 mb-4 text-sm sm:text-base">How to Generate App Password</h3>
             <ol className="text-xs sm:text-sm text-blue-800 space-y-2 list-decimal list-inside">
               <li>Go to your <a href="https://myaccount.google.com" target="_blank" rel="noopener noreferrer" className="underline">Google Account settings</a></li>
