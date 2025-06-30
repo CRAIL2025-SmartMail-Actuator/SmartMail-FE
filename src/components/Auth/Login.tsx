@@ -13,7 +13,7 @@ export const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission
     e.stopPropagation(); // Stop event bubbling
-    
+
     try {
       const success = await login(email, password);
       if (success) {
@@ -30,7 +30,7 @@ export const Login: React.FC = () => {
   const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
     setEmail(demoEmail);
     setPassword(demoPassword);
-    
+
     // Automatically attempt login with demo credentials
     try {
       const success = await login(demoEmail, demoPassword);
@@ -52,41 +52,6 @@ export const Login: React.FC = () => {
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
           <p className="text-gray-600 mt-2">Sign in to your AI Email Responder</p>
-        </div>
-
-        {/* Demo Credentials Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-          <div className="flex items-start space-x-3">
-            <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="text-sm font-semibold text-blue-900 mb-2">Demo Credentials</h3>
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('demo@company.com', 'demo123')}
-                    disabled={isLoading}
-                    className="text-xs bg-white border border-blue-200 rounded px-2 py-1 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
-                  >
-                    <div className="font-medium text-blue-900">Demo User</div>
-                    <div className="text-blue-600">demo@company.com</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('admin@company.com', 'admin123')}
-                    disabled={isLoading}
-                    className="text-xs bg-white border border-blue-200 rounded px-2 py-1 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
-                  >
-                    <div className="font-medium text-blue-900">Admin User</div>
-                    <div className="text-blue-600">admin@company.com</div>
-                  </button>
-                </div>
-                <p className="text-xs text-blue-700">
-                  Click any demo account above or use any email with password (min 6 chars)
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Login Form */}
@@ -167,8 +132,8 @@ export const Login: React.FC = () => {
             <div className="text-center">
               <p className="text-gray-600 text-sm">
                 Don't have an account?{' '}
-                <Link 
-                  to="/register" 
+                <Link
+                  to="/register"
                   className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
                 >
                   Sign up

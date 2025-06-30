@@ -265,7 +265,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addDocument = async (file: File, categories: string[]): Promise<boolean> => {
-    const response = await apiService.uploadDocument(file, categories);
+    const response = await apiService.uploadDocument([file], categories);
     if (response.success && response.data) {
       setDocuments(prev => [...prev, response.data!]);
       return true;

@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios';
 import { BaseApiService, ApiResponse } from './base';
-import { Email } from '../../types';
+import { Email, SentEmail } from '../../types';
 
 export interface EmailsParams {
   page?: number;
@@ -11,7 +11,7 @@ export interface EmailsParams {
 
 export interface AIResponseData {
   response_id: string;
-  suggestion: string;
+  email_body: string;
   confidence: number;
   category: string;
   tone: string;
@@ -23,6 +23,8 @@ export interface AIResponseData {
   }>;
   used_documents?: string[];
   processing_time_ms: number;
+  subject?: string; // Optional subject field for AI response
+  confidence_score: number; // Added confidence score for AI response
 }
 
 export interface SendReplyData {
@@ -42,14 +44,14 @@ export class EmailsApiService extends BaseApiService {
       if (params?.limit) queryParams.append('limit', params.limit.toString());
       if (params?.filter) queryParams.append('filter', params.filter);
       if (params?.search) queryParams.append('search', params.search);
-      
+
       const endpoint = `/emails/inbox${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response: AxiosResponse<ApiResponse<{ emails: Email[]; pagination: any }>> = await this.axiosInstance.get(endpoint);
-      
+
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to fetch emails' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
@@ -59,11 +61,11 @@ export class EmailsApiService extends BaseApiService {
   async getEmailDetails(id: string): Promise<{ success: boolean; data?: Email; error?: string }> {
     try {
       const response: AxiosResponse<ApiResponse<Email>> = await this.axiosInstance.get(`/emails/${id}`);
-      
+
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to fetch email details' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
@@ -75,11 +77,11 @@ export class EmailsApiService extends BaseApiService {
       const response: AxiosResponse<ApiResponse<any>> = await this.axiosInstance.patch(`/emails/${id}/read-status`, {
         is_read: isRead
       });
-      
+
       if (response.data.success) {
         return { success: true };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to update read status' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
@@ -91,11 +93,11 @@ export class EmailsApiService extends BaseApiService {
       const response: AxiosResponse<ApiResponse<any>> = await this.axiosInstance.patch(`/emails/${id}/star-status`, {
         is_starred: isStarred
       });
-      
+
       if (response.data.success) {
         return { success: true };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to update star status' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
@@ -105,11 +107,11 @@ export class EmailsApiService extends BaseApiService {
   async archiveEmail(id: string): Promise<{ success: boolean; error?: string }> {
     try {
       const response: AxiosResponse<ApiResponse<any>> = await this.axiosInstance.post(`/emails/${id}/archive`);
-      
+
       if (response.data.success) {
         return { success: true };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to archive email' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
@@ -119,11 +121,11 @@ export class EmailsApiService extends BaseApiService {
   async deleteEmail(id: string): Promise<{ success: boolean; error?: string }> {
     try {
       const response: AxiosResponse<ApiResponse<any>> = await this.axiosInstance.delete(`/emails/${id}`);
-      
+
       if (response.data.success) {
         return { success: true };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to delete email' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
@@ -145,32 +147,29 @@ export class EmailsApiService extends BaseApiService {
           include_signature: true
         }
       });
-      
+
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to generate AI response' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
     }
   }
 
-  async sendReply(emailId: string, content: string, htmlContent?: string, options?: any): Promise<{ success: boolean; data?: SendReplyData; error?: string }> {
+  async sendReply(emailId: number, body: string, subject?: string, options?: any): Promise<{ success: boolean; data?: SendReplyData; error?: string }> {
     try {
       const response: AxiosResponse<ApiResponse<SendReplyData>> = await this.axiosInstance.post(`/emails/${emailId}/reply`, {
-        content,
-        html_content: htmlContent,
-        include_signature: true,
-        cc: options?.cc || [],
-        bcc: options?.bcc || [],
-        attachments: options?.attachments || []
+        subject: subject,
+        body: body,
+        ...options
       });
-      
+
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to send reply' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
@@ -184,30 +183,30 @@ export class EmailsApiService extends BaseApiService {
         content,
         include_original: includeOriginal
       });
-      
+
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to forward email' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
     }
   }
 
-  async getSentEmails(params?: EmailsParams): Promise<{ success: boolean; data?: { emails: Email[]; pagination: any }; error?: string }> {
+  async getSentEmails(params?: EmailsParams): Promise<{ success: boolean; data?: { emails: SentEmail[]; pagination: any }; error?: string }> {
     try {
       const queryParams = new URLSearchParams();
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
-      
-      const endpoint = `/emails/sent${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      const response: AxiosResponse<ApiResponse<{ emails: Email[]; pagination: any }>> = await this.axiosInstance.get(endpoint);
-      
+
+      const endpoint = `/emails/sent`;
+      const response: AxiosResponse<ApiResponse<{ emails: SentEmail[]; pagination: any }>> = await this.axiosInstance.get(endpoint);
+
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
       }
-      
+
       return { success: false, error: response.data.error?.message || 'Failed to fetch sent emails' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };

@@ -5,10 +5,10 @@ import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorMessage } from '../common/ErrorMessage';
 import { MailboxSetup } from '../Mailbox/MailboxSetup';
 import { MailboxConfig } from '../MailboxConfig/MailboxConfig';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Edit,
+  Trash2,
   Settings,
   MessageSquare,
   Palette,
@@ -22,11 +22,12 @@ import {
   Shield
 } from 'lucide-react';
 import { Category } from '../../types';
+import apiService from '../../services/api';
 
 type ConfigTab = 'categories' | 'mail-setup' | 'mail-config';
 
 export const Configuration: React.FC = () => {
-  const { categories, mailboxConfig, loading, error, addCategory, updateCategory, deleteCategory, loadPageData } = useApp();
+  const { categories, mailboxConfig, loading, error, addCategory, updateCategory, deleteCategory, loadPageData, loadMailboxConfig } = useApp();
   const [activeTab, setActiveTab] = useState<ConfigTab>('categories');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -96,7 +97,7 @@ export const Configuration: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       let success = false;
       if (editingCategory) {
@@ -104,7 +105,7 @@ export const Configuration: React.FC = () => {
       } else {
         success = await addCategory(formData);
       }
-      
+
       if (success) {
         closeModal();
       }
@@ -127,25 +128,27 @@ export const Configuration: React.FC = () => {
   };
 
   const tabs = [
-    { 
-      id: 'categories' as ConfigTab, 
-      name: 'Categories', 
-      icon: Settings, 
-      description: 'Manage email categories and response templates' 
+    {
+      id: 'categories' as ConfigTab,
+      name: 'Categories',
+      icon: Settings,
+      description: 'Manage email categories and response templates',
+      disabled: false
     },
-    { 
-      id: 'mail-setup' as ConfigTab, 
-      name: 'Mail Setup', 
-      icon: Mail, 
-      description: 'Configure Gmail integration and connection' 
+    {
+      id: 'mail-setup' as ConfigTab,
+      name: 'Mail Setup',
+      icon: Mail,
+      description: 'Configure Gmail integration and connection',
+      disabled: false
     },
-    { 
-      id: 'mail-config' as ConfigTab, 
-      name: 'Mail Config', 
-      icon: MailSearch, 
-      description: 'Auto-reply rules and mailbox settings',
-      disabled: !mailboxConfig?.email
-    },
+    // {
+    //   id: 'mail-config' as ConfigTab,
+    //   name: 'Mail Config',
+    //   icon: MailSearch,
+    //   description: 'Auto-reply rules and mailbox settings',
+    //   disabled: !mailboxConfig?.email
+    // },
   ];
 
   const renderTabContent = () => {
@@ -180,8 +183,8 @@ export const Configuration: React.FC = () => {
 
             {/* Error Message */}
             {error.categories && (
-              <ErrorMessage 
-                message={error.categories} 
+              <ErrorMessage
+                message={error.categories}
                 onRetry={() => loadPageData('configuration')}
               />
             )}
@@ -218,17 +221,17 @@ export const Configuration: React.FC = () => {
                           </button>
                         </div>
                       </div>
-                      
+
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 truncate">{category.name}</h3>
                       <p className="text-sm text-gray-600 mb-4 line-clamp-2">{category.description}</p>
-                      
+
                       <div className="space-y-2 sm:space-y-3">
                         <div className="flex items-center text-sm">
                           <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-2 flex-shrink-0" />
                           <span className="text-gray-600">Tone: </span>
                           <span className="ml-1 font-medium capitalize">{category.tone}</span>
                         </div>
-                        
+
                         {category.customPrompt && (
                           <div className="flex items-start text-sm">
                             <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
@@ -236,7 +239,7 @@ export const Configuration: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="mt-4 pt-4 border-t border-gray-100">
                         <p className="text-xs font-medium mb-2 text-gray-500">Template Preview:</p>
                         <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg line-clamp-3">
@@ -284,7 +287,7 @@ export const Configuration: React.FC = () => {
             </div>
 
             {/* Show current configuration if exists */}
-            {mailboxConfig?.email && (
+            {mailboxConfig?.email ? (
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 sm:p-6 mb-6">
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
@@ -309,29 +312,43 @@ export const Configuration: React.FC = () => {
                       </div>
                     </div>
                     <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                      <button
+                      {/* <button
                         onClick={() => setActiveTab('mail-config')}
                         className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
                       >
                         Manage Settings
+                      </button> */}
+                      <button
+                        onClick={async () => {
+                          if (!mailboxConfig.monitoring_status) {
+                            await apiService.startMonitoring(mailboxConfig.id)
+                            setTimeout(loadMailboxConfig, 2000); // Wait for 2 seconds to ensure monitoring starts
+                          } else if (mailboxConfig.monitoring_status) {
+                            await apiService.stopMonitoring(mailboxConfig.id)
+                            setTimeout(loadMailboxConfig, 2000); // Wait for 2 seconds to ensure monitoring stops
+                          }
+                        }}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      >
+                        {mailboxConfig.monitoring_status ? 'Stop Monitoring' : 'Start Monitoring'}
                       </button>
                       <button
-                        onClick={() => {
-                          // Allow reconfiguration
-                          setActiveTab('mail-setup');
+                        onClick={async () => {
+                          await apiService.toggleMailAutoReply(mailboxConfig.id);
+                          loadMailboxConfig();
                         }}
-                        className="bg-white text-green-700 border border-green-300 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors text-sm"
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
                       >
-                        Reconfigure
+                        {mailboxConfig.auto_reply_enabled ? 'Disable Auto Reply' : 'Enable Auto Reply'}
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
+            ) : <MailboxSetup onConfigured={handleMailConfigured} />}
 
             {/* Mail Setup Component */}
-            <MailboxSetup onConfigured={handleMailConfigured} />
+
           </div>
         );
 
@@ -374,17 +391,15 @@ export const Configuration: React.FC = () => {
                     key={tab.id}
                     onClick={() => !tab.disabled && setActiveTab(tab.id)}
                     disabled={tab.disabled}
-                    className={`group inline-flex items-center py-4 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : tab.disabled
+                    className={`group inline-flex items-center py-4 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap ${activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : tab.disabled
                         ? 'border-transparent text-gray-400 cursor-not-allowed'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
-                    <Icon className={`mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 ${
-                      activeTab === tab.id ? 'text-blue-500' : tab.disabled ? 'text-gray-300' : 'text-gray-400 group-hover:text-gray-500'
-                    }`} />
+                    <Icon className={`mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 ${activeTab === tab.id ? 'text-blue-500' : tab.disabled ? 'text-gray-300' : 'text-gray-400 group-hover:text-gray-500'
+                      }`} />
                     <span className="hidden sm:inline">{tab.name}</span>
                     <span className="sm:hidden">{tab.name.split(' ')[0]}</span>
                     {tab.disabled && (
@@ -429,7 +444,7 @@ export const Configuration: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Name and Color */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -446,7 +461,7 @@ export const Configuration: React.FC = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Color
@@ -457,9 +472,8 @@ export const Configuration: React.FC = () => {
                         key={color}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, color }))}
-                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg ${color} border-2 ${
-                          formData.color === color ? 'border-gray-900' : 'border-transparent'
-                        } hover:scale-110 transition-transform`}
+                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg ${color} border-2 ${formData.color === color ? 'border-gray-900' : 'border-transparent'
+                          } hover:scale-110 transition-transform`}
                       />
                     ))}
                   </div>
@@ -496,11 +510,10 @@ export const Configuration: React.FC = () => {
                         onChange={(e) => setFormData(prev => ({ ...prev, tone: e.target.value as Category['tone'] }))}
                         className="sr-only"
                       />
-                      <div className={`p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.tone === tone.value
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}>
+                      <div className={`p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${formData.tone === tone.value
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}>
                         <div className="flex items-center mb-2">
                           <Palette className="h-4 w-4 text-gray-400 mr-2" />
                           <span className="font-medium text-gray-900 text-sm">{tone.label}</span>
@@ -515,7 +528,7 @@ export const Configuration: React.FC = () => {
               {/* Template */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Response Template
+                  Response Template <span className="text-gray-400 text-xs">(Optional)</span>
                 </label>
                 <textarea
                   value={formData.template}
@@ -523,7 +536,6 @@ export const Configuration: React.FC = () => {
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm"
                   placeholder="Enter the template for automated responses in this category"
-                  required
                 />
               </div>
 

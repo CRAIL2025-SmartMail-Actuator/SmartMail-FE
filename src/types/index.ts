@@ -14,7 +14,9 @@ export interface Category {
   template: string;
   color: string;
 }
-
+export interface Documents {
+  documents: CompanyDocument[]
+}
 export interface CompanyDocument {
   id: string;
   name: string;
@@ -42,14 +44,18 @@ export interface Email {
   priority: 'low' | 'normal' | 'high';
   category: string | null;
   ai_analysis: any | null; // replace `any` with a specific type if known
+  replied?: boolean; // Indicates if the email has been replied to
 }
 
 export interface MailboxConfig {
+  id: number;
   email: string;
   appPassword: string;
   autoReplyEmails: string[];
   confidenceThreshold: number;
   enabled: boolean;
+  monitoring_status?: boolean;
+  auto_reply_enabled?: boolean;
 }
 
 export interface LogEntry {
@@ -60,4 +66,14 @@ export interface LogEntry {
   subject: string;
   confidence: number;
   action: string;
+}
+export interface SentEmail {
+  id: number;
+  to: string[];
+  subject: string;
+  content: string;
+  html_content?: string;
+  sent_at: string;
+  status: string;
+  delivery_status: string;
 }

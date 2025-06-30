@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import clsx from 'clsx';
+import smartMail from '../../assests/smartmail-2.jpg';
 
 const navigationItems = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -59,11 +60,16 @@ export const Sidebar: React.FC = () => {
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
         {/* Logo and Brand */}
-        <div className="flex items-center px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-700">
-          <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mr-2 sm:mr-3 flex-shrink-0" />
+        <div className="flex items-center py-4 sm:py-5 border-b border-gray-700">
+          {/* <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400 mr-2 sm:mr-3 flex-shrink-0" />
           <div className="min-w-0">
-            <h1 className="text-m sm:text-sm font-bold truncate">Smart Email Assistant</h1>
-          </div>
+            <h1 className="text-m sm:text-sm font-bold truncate">Smart Email</h1>
+            <span className='text-[10px]'>Powered By Cognine Technologies</span>
+          </div> */}
+          <img
+            src={smartMail}
+            alt="Smart Mail Logo"
+            className="w-full bg-transparent"></img>
         </div>
 
         {/* Navigation */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Mail,
   Search,
@@ -25,6 +25,7 @@ import {
   X
 } from 'lucide-react';
 import { apiService } from '../../services/api';
+import { useApp } from '../../contexts/AppContext';
 
 interface EmailMessage {
   id: number;
@@ -42,20 +43,55 @@ interface EmailMessage {
   category?: string;
   thread: EmailMessage[];
   labels: string[];
+  replied?: boolean;
 }
 
 interface AIResponse {
-  suggestion: string;
+  email_body: string;
   confidence: number;
   category: string;
   tone: string;
   reasoning: string;
-  responseId: string;
+  subject: string;
 }
 
 interface InboxViewProps {
   emailConfig: { email: string; appPassword: string };
 }
+
+const REASONING_MAP: { min: number; max: number; reasoning: string }[] = [
+  {
+    min: 9,
+    max: 10,
+    reasoning: "High confidence due to clear context. Used professional tone to match customer service standards.",
+  },
+  {
+    min: 7,
+    max: 8.9,
+    reasoning: "Fairly confident based on identifiable intent and structured language. Responded with relevant tone and clarity.",
+  },
+  {
+    min: 5,
+    max: 6.9,
+    reasoning: "Moderate confidence. Some ambiguity in request, but tone and subject are inferred with reasonable accuracy.",
+  },
+  {
+    min: 3,
+    max: 4.9,
+    reasoning: "Low confidence. Email content has vague or incomplete context, making accurate tone and category inference difficult.",
+  },
+  {
+    min: 0,
+    max: 2.9,
+    reasoning: "Very low confidence. Email is unstructured or lacks clear intent, reducing reliability of AI analysis.",
+  }
+];
+
+const getReasoningByConfidence = (confidence: number): string => {
+  const match = REASONING_MAP.find(({ min, max }) => confidence >= min && confidence <= max);
+  return match?.reasoning || "Unable to determine confidence due to missing or invalid input.";
+};
+
 
 export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
   const [emails, setEmails] = useState<EmailMessage[]>([]);
@@ -70,7 +106,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
   const [showEmailList, setShowEmailList] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isSendingReply, setIsSendingReply] = useState(false);
-
+  const { categories } = useApp()
   // Check if mobile
   useEffect(() => {
     const checkMobile = () => {
@@ -81,6 +117,15 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const showGenerate = useMemo(() => {
+    if (!selectedEmail) return false;
+    if (selectedEmail.replied) return false; // Don't show if email has already been replied to
+    if (selectedEmail.category && (selectedEmail.category.toLowerCase().replace(/ /g, "-") === "customer-support" || selectedEmail.category.toLowerCase().replace(/ /g, "-") === "support")) {
+      return true;
+    }
+    return false
+  }, [selectedEmail, categories])
 
   // Load emails from API
   useEffect(() => {
@@ -112,7 +157,8 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
           priority: email.priority,
           category: email.category,
           thread: [],
-          labels: email.category ? [email.category] : []
+          labels: email.category ? [email.category] : [],
+          replied: email.replied || false // Use API's replied status
         }));
 
         setEmails(transformedEmails);
@@ -138,17 +184,18 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
       });
 
       if (response.success && response.data) {
+        console.log('AI response generated:', response.data);
         const aiResponseData: AIResponse = {
-          suggestion: response.data.suggestion,
-          confidence: response.data.confidence,
-          category: response.data.category,
-          tone: response.data.tone,
-          reasoning: response.data.reasoning,
-          responseId: response.data.response_id
+          email_body: response.data.email_body,
+          confidence: response.data.confidence_score,
+          category: selectedEmail?.category || 'General',
+          tone: response.data.tone || 'Professional',
+          reasoning: getReasoningByConfidence(response.data.confidence_score),
+          subject: response.data.subject || email.subject
         };
 
         setAiResponse(aiResponseData);
-        setReplyText(aiResponseData.suggestion);
+        setReplyText(aiResponseData.email_body);
       } else {
         console.error('Failed to generate AI response:', response.error);
         // Fallback to mock response for demo
@@ -205,7 +252,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
 
     setIsSendingReply(true);
     try {
-      const response = await apiService.sendReply(selectedEmail.id, replyText);
+      const response = await apiService.sendReply(selectedEmail.id, replyText, aiResponse?.subject || selectedEmail.subject, { to: selectedEmail.from });
 
       if (response.success) {
         console.log('Reply sent successfully:', response.data);
@@ -291,6 +338,9 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
 
   const handleEmailSelect = (email: EmailMessage) => {
     setSelectedEmail(email);
+    setAiResponse(null);
+    setReplyText('');
+    setShowAIPanel(false);
     if (isMobile) {
       setShowEmailList(false);
     }
@@ -398,9 +448,9 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                       {email.hasAttachments && (
                         <Paperclip className="h-3 w-3 text-gray-400" />
                       )}
-                      {email.category && (
+                      {(
                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full hidden sm:inline">
-                          {email.category}
+                          {email.category ?? 'Uncategorized'}
                         </span>
                       )}
                     </div>
@@ -418,7 +468,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
       {/* Email Detail and Reply Panel */}
       <div className={`${isMobile
         ? showEmailList ? 'hidden' : 'w-full'
-        : 'flex-1'
+        : showAIPanel ? 'lg:w-3/4' : 'flex-1'
         } flex flex-col`}>
         {selectedEmail ? (
           <>
@@ -489,14 +539,14 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                <button
+                {showGenerate && <button
                   onClick={() => generateAIResponse(selectedEmail)}
                   disabled={isGeneratingAI}
                   className="flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors text-sm"
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>{isGeneratingAI ? 'Generating...' : 'Generate AI Reply'}</span>
-                </button>
+                </button>}
                 <div className="flex space-x-2">
                   <button className="flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm flex-1 sm:flex-none">
                     <Reply className="h-4 w-4" />
@@ -540,11 +590,11 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                     {aiResponse && (
                       <div className="mt-2 text-sm text-gray-600">
                         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                          <span className={`px-2 py-1 rounded-full text-xs ${aiResponse.confidence >= 0.9 ? 'bg-green-100 text-green-800' :
-                            aiResponse.confidence >= 0.7 ? 'bg-yellow-100 text-yellow-800' :
+                          <span className={`px-2 py-1 rounded-full text-xs ${aiResponse.confidence >= 9 ? 'bg-green-100 text-green-800' :
+                            aiResponse.confidence >= 7 ? 'bg-yellow-100 text-yellow-800' :
                               'bg-red-100 text-red-800'
                             }`}>
-                            {Math.round(aiResponse.confidence * 100)}% confidence
+                            {Math.round(aiResponse.confidence * 10)}% confidence
                           </span>
                           <span className="text-xs text-gray-500">{aiResponse.tone}</span>
                         </div>
@@ -567,13 +617,17 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                           <h4 className="text-sm font-medium text-gray-900 mb-2">AI Analysis</h4>
                           <p className="text-xs text-gray-600">{aiResponse.reasoning}</p>
                         </div>
-
+                        {/* Email Subject */}
+                        <div className="bg-white rounded-lg p-3 border border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-2">Reply Subject</h4>
+                          <p className="text-xs text-gray-600">{aiResponse.subject}</p>
+                        </div>
                         {/* Reply Editor */}
                         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                           <div className="p-3 border-b border-gray-200 flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-900">Reply Draft</span>
                             <button
-                              onClick={() => setReplyText(aiResponse.suggestion)}
+                              onClick={() => setReplyText(aiResponse.email_body)}
                               className="text-xs text-blue-600 hover:text-blue-700"
                             >
                               Reset to AI suggestion

@@ -40,7 +40,7 @@ export interface MonitoringStats {
 export class MailboxApiService extends BaseApiService {
   async getMailboxConfig(): Promise<{ success: boolean; data?: MailboxConfig[]; error?: string }> {
     try {
-      const response: AxiosResponse<ApiResponse<MailboxConfig>> = await this.axiosInstance.get('/mailbox/configuration');
+      const response: AxiosResponse<ApiResponse<MailboxConfig[]>> = await this.axiosInstance.get('/mailbox/configuration');
 
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
@@ -54,7 +54,7 @@ export class MailboxApiService extends BaseApiService {
 
   async updateMailboxConfig(config: MailboxConfig): Promise<{ success: boolean; data?: MailboxConfig[]; error?: string }> {
     try {
-      const response: AxiosResponse<ApiResponse<MailboxConfig>> = await this.axiosInstance.put('/mailbox/configuration', config);
+      const response: AxiosResponse<ApiResponse<MailboxConfig[]>> = await this.axiosInstance.put('/mailbox/configuration', config);
 
       if (response.data.success && response.data.data) {
         return { success: true, data: response.data.data };
@@ -118,9 +118,9 @@ export class MailboxApiService extends BaseApiService {
     }
   }
 
-  async startMonitoring(): Promise<{ success: boolean; error?: string }> {
+  async startMonitoring(mailboxId: number): Promise<{ success: boolean; error?: string }> {
     try {
-      const response: AxiosResponse<ApiResponse<{ message: string }>> = await this.axiosInstance.post('/mailbox/monitoring/start');
+      const response: AxiosResponse<ApiResponse<{ message: string }>> = await this.axiosInstance.post(`/monitor/start/${mailboxId}`);
 
       if (response.data.success) {
         return { success: true };
@@ -132,9 +132,9 @@ export class MailboxApiService extends BaseApiService {
     }
   }
 
-  async stopMonitoring(): Promise<{ success: boolean; error?: string }> {
+  async stopMonitoring(mailboxId: number): Promise<{ success: boolean; error?: string }> {
     try {
-      const response: AxiosResponse<ApiResponse<{ message: string }>> = await this.axiosInstance.post('/mailbox/monitoring/stop');
+      const response: AxiosResponse<ApiResponse<{ message: string }>> = await this.axiosInstance.post(`/monitor/stop/${mailboxId}`);
 
       if (response.data.success) {
         return { success: true };
@@ -289,6 +289,19 @@ export class MailboxApiService extends BaseApiService {
       }
 
       return { success: false, error: response.data.error?.message || 'Failed to perform health check' };
+    } catch (error) {
+      return { success: false, error: this.handleApiError(error) };
+    }
+  }
+  async toggleMailAutoReply(id: number): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const response: AxiosResponse<ApiResponse<AutoReplyRule>> = await this.axiosInstance.patch(`/mailbox/${id}/toggle-auto-reply`, {});
+
+      if (response.data.success && response.data.data) {
+        return { success: true, data: response.data.data };
+      }
+
+      return { success: false, error: response.data.error?.message || 'Failed to toggle auto-reply rule' };
     } catch (error) {
       return { success: false, error: this.handleApiError(error) };
     }

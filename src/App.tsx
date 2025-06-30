@@ -46,69 +46,69 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Public routes - redirect to dashboard if already logged in */}
-      <Route 
-        path="/login" 
-        element={user ? <Navigate to="/" replace /> : <Login />} 
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/" replace /> : <Login />}
       />
-      <Route 
-        path="/register" 
-        element={user ? <Navigate to="/" replace /> : <Register />} 
+      <Route
+        path="/register"
+        element={user ? <Navigate to="/" replace /> : <Register />}
       />
-      
+
       {/* Protected routes */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/configuration" 
+      <Route
+        path="/configuration"
         element={
           <ProtectedRoute>
             <Configuration />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/upload" 
+      <Route
+        path="/upload"
         element={
           <ProtectedRoute>
             <UploadData />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/mailbox" 
+      <Route
+        path="/mailbox"
         element={
           <ProtectedRoute>
             <Mailbox />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/mailbox-config" 
+      <Route
+        path="/mailbox-config"
         element={
           <ProtectedRoute>
             <MailboxConfig />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/logs" 
+      <Route
+        path="/logs"
         element={
           <ProtectedRoute>
             <Logs />
           </ProtectedRoute>
-        } 
+        }
       />
-      
+
       {/* Catch all route - redirect to dashboard if logged in, login if not */}
-      <Route 
-        path="*" 
-        element={<Navigate to={user ? "/" : "/login"} replace />} 
+      <Route
+        path="*"
+        element={<Navigate to={user ? "/" : "/login"} replace />}
       />
     </Routes>
   );
