@@ -97,7 +97,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
   const [emails, setEmails] = useState<EmailMessage[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterBy, setFilterBy] = useState<'all' | 'unread' | 'starred' | 'important'>('all');
+  const [filterBy, setFilterBy] = useState<'all' | 'unread' | 'starred'>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [replyText, setReplyText] = useState('');
   const [aiResponse, setAiResponse] = useState<AIResponse | null>(null);
@@ -152,7 +152,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
           body: email.body,
           timestamp: email.timestamp,
           isRead: email.is_read,
-          isStarred: false, // Default value
+          isStarred: email.is_starred, // Default value
           hasAttachments: false, // Default value
           priority: email.priority,
           category: email.category,
@@ -301,18 +301,21 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
     }
   };
 
-  const filteredEmails = emails.filter(email => {
-    const matchesSearch = email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      email.fromName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      email.body.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredEmails = useMemo(() => {
+    return emails.filter(email => {
+      const matchesSearch = email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        email.fromName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        email.body.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesFilter = filterBy === 'all' ||
-      (filterBy === 'unread' && !email.isRead) ||
-      (filterBy === 'starred' && email.isStarred) ||
-      (filterBy === 'important' && email.priority === 'high');
+      const matchesFilter = filterBy === 'all' ||
+        (filterBy === 'unread' && !email.isRead) ||
+        (filterBy === 'starred' && email.isStarred)
 
-    return matchesSearch && matchesFilter;
-  });
+      return matchesSearch && matchesFilter;
+    });
+  }, [emails, searchQuery, filterBy]);
+
+
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
@@ -386,7 +389,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
           </div>
 
           <div className="flex space-x-1 sm:space-x-2 overflow-x-auto">
-            {['all', 'unread', 'starred', 'important'].map((filter) => (
+            {['all', 'unread', 'starred'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setFilterBy(filter as any)}
@@ -413,9 +416,12 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                 <div
                   key={email.id}
                   onClick={() => handleEmailSelect(email)}
-                  className={`p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedEmail?.id === email.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-                    } ${!email.isRead ? 'bg-blue-25' : ''}`}
+                  className={`relative p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedEmail?.id === email.id ? 'bg-blue-50' : ''
+                    } ${!email.isRead && selectedEmail?.id !== email.id ? 'bg-blue-25' : ''}`}
                 >
+                  {selectedEmail?.id === email.id && (
+                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 rounded-r-md"></div>
+                  )}
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
                       <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold flex-shrink-0">
@@ -450,7 +456,7 @@ export const InboxView: React.FC<InboxViewProps> = ({ emailConfig }) => {
                       )}
                       {(
                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full hidden sm:inline">
-                          {email.category ?? 'Uncategorized'}
+                          {email.category ?? 'Others'}
                         </span>
                       )}
                     </div>

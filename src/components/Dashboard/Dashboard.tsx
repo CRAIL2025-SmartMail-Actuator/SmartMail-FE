@@ -14,7 +14,9 @@ import {
   Bot,
   RefreshCw
 } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { Layers } from 'lucide-react';
 export const Dashboard: React.FC = () => {
   const {
     emails,
@@ -32,6 +34,10 @@ export const Dashboard: React.FC = () => {
     console.log('📊 Dashboard mounted - loading page data');
     loadPageData('dashboard');
   }, []);
+
+  const { user } = useAuth()
+
+  const navigate = useNavigate();
 
   const stats = [
     {
@@ -72,8 +78,8 @@ export const Dashboard: React.FC = () => {
     },
   ];
 
-  const recentEmails = emails.slice(0, 5);
-  const recentLogs = logs.slice(0, 5);
+  const recentEmails = emails.slice(0, 3);
+  const recentLogs = logs.slice(0, 3);
 
   const isLoading = loading.emails || loading.categories || loading.documents || loading.logs;
   const hasError = error.emails || error.categories || error.documents || error.logs;
@@ -120,7 +126,27 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+          {user && <div
+            key={user.domain}
+            className="relative bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className={`${'bg-purple-500'} p-2 sm:p-3 rounded-lg flex-shrink-0`}>
+                <Layers className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
+              </div>
+              <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                  Domain
+                </p>
+                <div className="flex items-center">
+                  <p className="text-lg sm:text-2xl font-semibold text-[#2563eb]">
+                    {user.domain}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>}
           {stats.map((stat) => (
             <div
               key={stat.name}
@@ -289,7 +315,10 @@ export const Dashboard: React.FC = () => {
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <button
-              onClick={() => loadPageData('configuration')}
+              onClick={() => {
+                loadPageData('configuration');
+                navigate('/configuration');
+              }}
               disabled={loading.categories}
               className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all group text-left disabled:opacity-50"
             >
@@ -298,7 +327,10 @@ export const Dashboard: React.FC = () => {
               <p className="text-xs sm:text-sm text-gray-500">Configure email categories</p>
             </button>
             <button
-              onClick={() => loadPageData('upload')}
+              onClick={() => {
+                loadPageData('upload')
+                navigate('/upload');
+              }}
               disabled={loading.documents}
               className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all group text-left disabled:opacity-50"
             >
@@ -307,7 +339,10 @@ export const Dashboard: React.FC = () => {
               <p className="text-xs sm:text-sm text-gray-500">Add company knowledge base</p>
             </button>
             <button
-              onClick={() => loadPageData('mailbox')}
+              onClick={() => {
+                loadPageData('mailbox')
+                navigate('/mailbox');
+              }}
               disabled={loading.emails}
               className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all group text-left sm:col-span-2 lg:col-span-1 disabled:opacity-50"
             >
